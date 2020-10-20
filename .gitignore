@@ -12,3 +12,4 @@ scenes/show-scene*
 *.blend[0-9]
 CppProperties.json
 .vs/*
+rebuild.bat

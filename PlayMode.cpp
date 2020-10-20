@@ -44,6 +44,18 @@ Load< WalkMeshes > phonebank_walkmeshes(LoadTagDefault, []() -> WalkMeshes const
 	return ret;
 });
 
+Load< Sound::Sample > reawakening_sample(LoadTagDefault, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("Reawakening.opus"));
+});
+
+Load< Sound::Sample > heart_of_nowhere_sample(LoadTagDefault, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("Heart of Nowhere.opus"));
+});
+
+Load< Sound::Sample > time_passes_sample(LoadTagDefault, []() -> Sound::Sample const* {
+	return new Sound::Sample(data_path("Time Passes.opus"));
+});
+
 PlayMode::PlayMode() : scene(*phonebank_scene) {
 	//create a player transform:
 	scene.transforms.emplace_back();
@@ -212,6 +224,32 @@ void PlayMode::update(float elapsed) {
 			player.transform->rotation = glm::normalize(adjust * player.transform->rotation);
 		}
 
+		//update music playing based off of player position
+		{
+			if (!reawake_playing && player.transform->position.x <= 3.0f && player.transform->position.x >= -3.0f &&
+				player.transform->position.y <= 3.0f && player.transform->position.y >= -3.0f && player.transform->position.z >= -0.2f) {
+				Sound::stop_all_samples();
+				Sound::loop_3D(*reawakening_sample, 1.0f, player.transform->position, 1.0f);
+				reawake_playing = true;
+				heart_playing = false;
+				time_playing = false;
+			} else if (!heart_playing && player.transform->position.x <= 2.0f && player.transform->position.x >= -2.0f &&
+				player.transform->position.y <= 2.0f && player.transform->position.y >= -2.0f && player.transform->position.z <= -4.8f) {
+				Sound::stop_all_samples();
+				Sound::loop_3D(*reawakening_sample, 1.0f, player.transform->position, 1.0f);
+				reawake_playing = false;
+				heart_playing = true;
+				time_playing = false;
+			} else if (!time_playing && player.transform->position.x <= 23.0f && player.transform->position.x >= 19.0f &&
+				player.transform->position.y <= 0.0f && player.transform->position.y >= -4.0f && player.transform->position.z >= 5.8f) {
+				Sound::stop_all_samples();
+				Sound::loop_3D(*reawakening_sample, 1.0f, player.transform->position, 1.0f);
+				reawake_playing = false;
+				heart_playing = false;
+				time_playing = true;
+			}
+		}
+
 		/*
 		glm::mat4x3 frame = camera->transform->make_local_to_parent();
 		glm::vec3 right = frame[0];
@@ -260,16 +298,53 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			0.0f, 0.0f, 0.0f, 1.0f
 		));
 
-		constexpr float H = 0.09f;
-		lines.draw_text("Mouse motion looks; WASD moves; escape ungrabs mouse",
-			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-		float ofs = 2.0f / drawable_size.y;
-		lines.draw_text("Mouse motion looks; WASD moves; escape ungrabs mouse",
-			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		if (reawake_playing)
+		{
+			constexpr float H = 0.09f;
+			lines.draw_text("Reawakening by Kevin MacLeod",
+				glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+			float ofs = 2.0f / drawable_size.y;
+			lines.draw_text("Reawakening by Kevin MacLeod",
+				glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + +0.1f * H + ofs, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		} else if (heart_playing) {
+			constexpr float H = 0.09f;
+			lines.draw_text("Heart of Nowhere by Kevin MacLeod",
+				glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+			float ofs = 2.0f / drawable_size.y;
+			lines.draw_text("Heart of Nowhere by Kevin MacLeod",
+				glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + +0.1f * H + ofs, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		} else if (time_playing) {
+			constexpr float H = 0.09f;
+			lines.draw_text("Time Passes by Kevin MacLeod",
+				glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+			float ofs = 2.0f / drawable_size.y;
+			lines.draw_text("Time Passes by Kevin MacLeod",
+				glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + +0.1f * H + ofs, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		} else {
+			constexpr float H = 0.09f;
+			lines.draw_text("Mouse motion looks; WASD moves; escape ungrabs mouse",
+				glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+			float ofs = 2.0f / drawable_size.y;
+			lines.draw_text("Mouse motion looks; WASD moves; escape ungrabs mouse",
+				glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + +0.1f * H + ofs, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		}
+		
 	}
 	GL_ERRORS();
 }

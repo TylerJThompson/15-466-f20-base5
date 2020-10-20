@@ -58,7 +58,7 @@ glm::vec3 barycentric_weights(glm::vec3 const &a, glm::vec3 const &b, glm::vec3 
 		glm::vec3 barycentric_points = *(new glm::vec3(u, v, w));
 		return barycentric_points;
 	}
-	//end of code from Stack Overflow / Christer Ericson
+	//end of code from Stack Exchange / Christer Ericson
 }
 
 WalkPoint WalkMesh::nearest_walk_point(glm::vec3 const &world_point) const {
